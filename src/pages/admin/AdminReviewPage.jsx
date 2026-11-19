@@ -1,12 +1,31 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 
 function AdminReviewPage() {
   const { attemptId } = useParams();
+  const navigate = useNavigate();
 
   const [reviewData, setReviewData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const goBack = () => {
+    if ((window.history.state?.idx ?? 0) > 0) {
+      navigate(-1);
+    } else {
+      navigate("/admin/leaderboards");
+    }
+  };
+
+  const backButton = (
+    <button
+      className="mb-4 rounded bg-slate-700 px-4 py-2 text-white hover:bg-slate-800"
+      onClick={goBack}
+      type="button"
+    >
+      Back
+    </button>
+  );
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -36,18 +55,17 @@ function AdminReviewPage() {
   }, [attemptId]);
 
   if (loading) {
-    return <p className="p-6">Loading review...</p>;
+    return <div className="p-6">{backButton}<p>Loading review...</p></div>;
   }
 
   if (!reviewData) {
-    return <p className="p-6">Review not found.</p>;
+    return <div className="p-6">{backButton}<p>Review not found.</p></div>;
   }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">
-        Answer Review
-      </h1>
+      {backButton}
+      <h1 className="text-2xl font-bold mb-2">Answer Review</h1>
 
       <div className="bg-blue-50 rounded p-4 mb-6">
         <p>

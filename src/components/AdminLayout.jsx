@@ -32,6 +32,13 @@ function AdminLayout({ children }) {
           </Link>
 
           <Link
+            to="/admin/students"
+            className="block hover:text-blue-400"
+          >
+            Student Management
+          </Link>
+
+          <Link
             to="/admin/questions"
             className="block hover:text-blue-400"
           >

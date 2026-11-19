@@ -4,6 +4,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import StudentManagementPage from "./pages/admin/StudentManagementPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import QuestionsPage from "./pages/admin/QuestionsPage";
@@ -68,6 +69,15 @@ function App() {
         element={
           <ProtectedRoute allowedRole="admin">
             <QuestionsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/students"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <StudentManagementPage />
           </ProtectedRoute>
         }
       />
