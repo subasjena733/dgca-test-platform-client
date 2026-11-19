@@ -1,15 +1,40 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import AsyncActionButton from "../../components/AsyncActionButton";
 import api from "../../services/api";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
+
+function questionToFormData(question) {
+  return {
+    subject: question.subject,
+    topic: question.topic,
+    difficulty: question.difficulty,
+    questionText: question.questionText,
+    optionA: question.options[0]?.text || "",
+    optionB: question.options[1]?.text || "",
+    optionC: question.options[2]?.text || "",
+    optionD: question.options[3]?.text || "",
+    correctOption: question.correctOption,
+    explanation: question.explanation || "",
+    imageUrl: question.imageUrl || "",
+    explanationImageUrl: question.explanationImageUrl || "",
+    solutionVideoUrl: question.solutionVideoUrl || "",
+    marks: question.marks,
+    negativeMarks: question.negativeMarks
+  };
+}
 
 function QuestionsPage() {
   const [questions, setQuestions] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [questionCodeSearch, setQuestionCodeSearch] = useState("");
 
   const [showForm, setShowForm] = useState(false);
 
   const [editingQuestionId, setEditingQuestionId] =useState(null);
+  const [advancedEditEnabled, setAdvancedEditEnabled] = useState(false);
+  const [editStrategy, setEditStrategy] = useState("copy-and-supersede");
+  const [regradeAttempts, setRegradeAttempts] = useState(false);
 
   const [showQuestionView, setShowQuestionView] = useState(false);
   const [viewQuestion, setViewQuestion] = useState(null);
@@ -28,16 +53,23 @@ function QuestionsPage() {
     topic: "",
     difficulty: "Easy",
     questionText: "",
+    imageUrl: "",
     optionA: "",
     optionB: "",
     optionC: "",
     optionD: "",
     correctOption: "",
     explanation: "",
+    explanationImageUrl: "",
+    solutionVideoUrl: "",
     marks: 1,
     negativeMarks: 0
   };
   const [formData, setFormData] = useState(initialFormData);
+  const questionContentLocked = Boolean(editingQuestionId) && !advancedEditEnabled;
+  const filteredQuestions = questions.filter((question) =>
+    question.questionCode?.toLowerCase().includes(questionCodeSearch.trim().toLowerCase())
+  );
 
   useEffect(() => {
     fetchQuestions();
@@ -64,11 +96,70 @@ function QuestionsPage() {
 
   const handleSubmit = async () => {
     try {
-      if (!formData.correctOption) {
+      if ((!editingQuestionId || advancedEditEnabled) && !formData.correctOption) {
         alert("Please select correct option");
         return;
       }
 
+      if (editingQuestionId && advancedEditEnabled) {
+        if (!editStrategy) {
+          alert("Choose whether to create a new version or update the original question.");
+          return;
+        }
+
+        const confirmation = editStrategy === "copy-and-supersede"
+          ? "Create a new version and supersede this question? Existing mock tests and attempts will keep using the previous version."
+          : "Update the original question? Existing mock tests and historical reviews will use the edited content. Past review answers may be reclassified, but saved scores will not be recalculated. This cannot be undone automatically.";
+        const confirmationWithRegrade = regradeAttempts && editStrategy === "update-original"
+          ? `${confirmation}\n\nAlso recalculate and save the results of every submitted attempt that used this question? Previous result values will be recorded in the attempt history.`
+          : confirmation;
+        if (!window.confirm(confirmationWithRegrade)) return;
+
+        const payload = {
+          editStrategy,
+          subject: formData.subject,
+          topic: formData.topic,
+          difficulty: formData.difficulty,
+          questionText: formData.questionText,
+          options: [
+            { label: "A", text: formData.optionA },
+            { label: "B", text: formData.optionB },
+            { label: "C", text: formData.optionC },
+            { label: "D", text: formData.optionD }
+          ],
+          correctOption: formData.correctOption,
+          imageUrl: formData.imageUrl.trim(),
+          explanation: formData.explanation,
+          explanationImageUrl: formData.explanationImageUrl.trim(),
+          solutionVideoUrl: formData.solutionVideoUrl.trim(),
+          marks: formData.marks,
+          negativeMarks: formData.negativeMarks
+        };
+
+        const response = await api.put(`/questions/${editingQuestionId}`, payload);
+        let successMessage = response.data.message || "Question updated successfully.";
+
+        if (editStrategy === "update-original" && regradeAttempts) {
+          try {
+            const regradeResponse = await api.post(`/questions/${editingQuestionId}/regrade-attempts`);
+            successMessage += ` ${regradeResponse.data.message}`;
+          } catch (regradeError) {
+            console.error(regradeError);
+            alert(`The question was updated, but regrading failed: ${regradeError.response?.data?.message || "Please retry by saving the original question again with regrading selected."}`);
+            return;
+          }
+        }
+
+        alert(successMessage);
+      } else if (editingQuestionId) {
+        const response = await api.put(`/questions/${editingQuestionId}`, {
+          editStrategy: "explanation-only",
+          explanation: formData.explanation,
+          explanationImageUrl: formData.explanationImageUrl.trim(),
+          solutionVideoUrl: formData.solutionVideoUrl.trim()
+        });
+        alert(response.data.message || "Explanation updated successfully.");
+      } else {
       const payload = {
         subject: formData.subject,
         topic: formData.topic,
@@ -94,43 +185,26 @@ function QuestionsPage() {
         ],
         correctOption: formData.correctOption,
         explanation: formData.explanation,
+        imageUrl: formData.imageUrl.trim(),
+        explanationImageUrl: formData.explanationImageUrl.trim(),
+        solutionVideoUrl: formData.solutionVideoUrl.trim(),
         marks: formData.marks,
         negativeMarks: formData.negativeMarks
       };
 
-      if (editingQuestionId) {
-        await api.put(
-          `/questions/${editingQuestionId}`,
-          payload
-        );
-
-        alert("Question updated successfully");
-      } else {
         await api.post("/questions", payload);
 
         alert("Question added successfully");
       }
 
       setShowForm(false);
-
       setEditingQuestionId(null);
+      setAdvancedEditEnabled(false);
+      setEditStrategy("copy-and-supersede");
+      setRegradeAttempts(false);
+      setFormData(initialFormData);
 
-      setFormData({
-        subject: "",
-        topic: "",
-        difficulty: "Easy",
-        questionText: "",
-        optionA: "",
-        optionB: "",
-        optionC: "",
-        optionD: "",
-        correctOption: "",
-        explanation: "",
-        marks: 1,
-        negativeMarks: 0
-      });
-
-      fetchQuestions();
+      await fetchQuestions();
     } catch (error) {
       console.error(error);
 
@@ -147,8 +221,26 @@ function QuestionsPage() {
 
   const resetForm = () => {
     if (window.confirm("Clear all fields?")) {
-      clearForm();
+      if (editingQuestionId) {
+        if (advancedEditEnabled) {
+          const originalQuestion = questions.find((question) => question._id === editingQuestionId);
+          if (originalQuestion) setFormData(questionToFormData(originalQuestion));
+        } else {
+          setFormData((current) => ({ ...current, explanation: "", explanationImageUrl: "", solutionVideoUrl: "" }));
+        }
+      } else {
+        clearForm();
+      }
     }
+  };
+
+  const closeQuestionForm = () => {
+    setShowForm(false);
+    setEditingQuestionId(null);
+    setAdvancedEditEnabled(false);
+    setEditStrategy("copy-and-supersede");
+    setRegradeAttempts(false);
+    setFormData(initialFormData);
   };
 
   const handleDelete = async (id) => {
@@ -163,7 +255,7 @@ function QuestionsPage() {
 
       alert("Question deleted successfully");
 
-      fetchQuestions();
+      await fetchQuestions();
     } catch (error) {
       console.error(error);
 
@@ -176,23 +268,32 @@ function QuestionsPage() {
 
   const handleEdit = (question) => {
     setEditingQuestionId(question._id);
-
-    setFormData({
-      subject: question.subject,
-      topic: question.topic,
-      difficulty: question.difficulty,
-      questionText: question.questionText,
-      optionA: question.options[0]?.text || "",
-      optionB: question.options[1]?.text || "",
-      optionC: question.options[2]?.text || "",
-      optionD: question.options[3]?.text || "",
-      correctOption: question.correctOption,
-      explanation: question.explanation || "",
-      marks: question.marks,
-      negativeMarks: question.negativeMarks
-    });
-
+    setAdvancedEditEnabled(false);
+    setEditStrategy("copy-and-supersede");
+    setRegradeAttempts(false);
+    setFormData(questionToFormData(question));
     setShowForm(true);
+  };
+
+  const toggleAdvancedEdit = (enabled) => {
+    setAdvancedEditEnabled(enabled);
+    if (enabled) {
+      setEditStrategy("copy-and-supersede");
+      setRegradeAttempts(false);
+      return;
+    }
+
+    const originalQuestion = questions.find((question) => question._id === editingQuestionId);
+    if (originalQuestion) {
+      setFormData({
+        ...questionToFormData(originalQuestion),
+        explanation: formData.explanation,
+        explanationImageUrl: formData.explanationImageUrl,
+        solutionVideoUrl: formData.solutionVideoUrl,
+      });
+    }
+    setEditStrategy("copy-and-supersede");
+    setRegradeAttempts(false);
   };
 
   const handleReadExcel = () => {
@@ -248,10 +349,13 @@ function QuestionsPage() {
         Question: "",
         "Option A": "",
         "Option B": "",
-        "Option C": "",
-        "Option D": "",
+        "Option C (Optional)": "",
+        "Option D (Optional)": "",
         "Correct Option": "",
-        Explanation: "",
+        "Explanation (Optional)": "",
+        "Question Image URL": "",
+        "Explanation Image URL": "",
+        "Solution Video URL": "",
         Marks: 1,
         "Negative Marks": 0
       }
@@ -259,6 +363,28 @@ function QuestionsPage() {
 
     const worksheet =
       XLSX.utils.json_to_sheet(template);
+
+    const headerColors = [
+      "1D4ED8", "1D4ED8", "1D4ED8", "7C3AED",
+      "0F766E", "0F766E", "0F766E", "0F766E", "0F766E",
+      "15803D", "EA580C", "D97706", "DB2777", "475569", "475569"
+    ];
+    const headers = Object.keys(template[0]);
+    headers.forEach((_, columnIndex) => {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: columnIndex });
+      worksheet[cellAddress].s = {
+        fill: { patternType: "solid", fgColor: { rgb: headerColors[columnIndex] } },
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true }
+      };
+    });
+    worksheet["!cols"] = [
+      { wch: 18 }, { wch: 20 }, { wch: 14 }, { wch: 42 },
+      { wch: 24 }, { wch: 24 }, { wch: 24 }, { wch: 24 },
+      { wch: 18 }, { wch: 38 }, { wch: 38 }, { wch: 38 },
+      { wch: 38 }, { wch: 14 }, { wch: 16 }
+    ];
+    worksheet["!rows"] = [{ hpt: 30 }];
 
     const workbook =
       XLSX.utils.book_new();
@@ -291,10 +417,13 @@ function QuestionsPage() {
       const question = String(row.Question || "").trim();
       const optionA = String(row["Option A"] || "").trim();
       const optionB = String(row["Option B"] || "").trim();
-      const optionC = String(row["Option C"] || "").trim();
-      const optionD = String(row["Option D"] || "").trim();
+      const optionC = String(row["Option C (Optional)"] || row["Option C"] || "").trim();
+      const optionD = String(row["Option D (Optional)"] || row["Option D"] || "").trim();
       const correctOption = String(row["Correct Option"] || "").trim().toUpperCase();
-      const explanation = String(row.Explanation || "").trim();
+      const explanation = String(row["Explanation (Optional)"] || row.Explanation || "").trim();
+      const imageUrl = String(row["Question Image URL"] || row["Image URL"] || "").trim();
+      const explanationImageUrl = String(row["Explanation Image URL"] || "").trim();
+      const solutionVideoUrl = String(row["Solution Video URL"] || "").trim();
 
       const marks = Number(row.Marks);
       const negativeMarks = Number(row["Negative Marks"]);
@@ -347,12 +476,6 @@ function QuestionsPage() {
       if (!optionB)
         errors.push("Option B missing");
 
-      if (!optionC)
-        errors.push("Option C missing");
-
-      if (!optionD)
-        errors.push("Option D missing");
-
       // Correct Option
 
       if (
@@ -361,12 +484,17 @@ function QuestionsPage() {
         )
       ) {
         errors.push("Correct Option invalid");
+      } else if (!({ A: optionA, B: optionB, C: optionC, D: optionD })[correctOption]) {
+        errors.push("Correct Option must refer to an option with text");
       }
 
-      // Explanation
-
-      if (!explanation) {
-        errors.push("Explanation missing");
+      for (const [label, url] of [["Question Image URL", imageUrl], ["Explanation Image URL", explanationImageUrl], ["Solution Video URL", solutionVideoUrl]]) {
+        if (!url) continue;
+        try {
+          if (new URL(url).protocol !== "https:") throw new Error();
+        } catch {
+          errors.push(`${label} must be a valid HTTPS URL`);
+        }
       }
 
       // Marks
@@ -418,6 +546,9 @@ function QuestionsPage() {
           ],
           correctOption,
           explanation,
+          imageUrl,
+          explanationImageUrl,
+          solutionVideoUrl,
           marks,
           negativeMarks
         });
@@ -481,7 +612,7 @@ function QuestionsPage() {
 
       //--------------------------------
 
-      fetchQuestions();
+      await fetchQuestions();
 
     }
 
@@ -512,13 +643,13 @@ function QuestionsPage() {
 
         <button
           onClick={() => {
-          if (editingQuestionId) {
             setEditingQuestionId(null);
-            clearForm();
-          }
-
-          setShowForm(true);
-        }}
+            setAdvancedEditEnabled(false);
+            setEditStrategy("copy-and-supersede");
+            setRegradeAttempts(false);
+            setFormData(initialFormData);
+            setShowForm(true);
+          }}
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           Add Question
@@ -825,7 +956,7 @@ function QuestionsPage() {
 
                     <div className="mb-5">
 
-                      <p className="font-semibold text-lg">
+                      <p className="font-semibold text-lg whitespace-pre-wrap">
 
                         Q{index + 1}. {question.question}
 
@@ -833,11 +964,13 @@ function QuestionsPage() {
 
                     </div>
 
+                    {question.imageUrl && <img alt={`Question ${index + 1}`} className="mb-5 max-h-80 w-auto rounded border object-contain" src={question.imageUrl} />}
+
                     {/* Options */}
 
                     <div className="space-y-3">
 
-                      {question.options.map((option) => (
+                      {question.options.filter((option) => option.text?.trim()).map((option) => (
 
                         <div
                           key={option.label}
@@ -886,11 +1019,14 @@ function QuestionsPage() {
 
                       </strong>
 
-                      <p className="mt-2">
+                      <p className="mt-2 whitespace-pre-wrap">
 
                         {question.explanation}
 
                       </p>
+
+                      {question.explanationImageUrl && <img alt={`Explanation for question ${index + 1}`} className="mt-3 max-h-80 w-auto rounded border object-contain" src={question.explanationImageUrl} />}
+                      {question.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={question.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
 
                     </div>
 
@@ -913,12 +1049,13 @@ function QuestionsPage() {
                 Cancel
               </button>
 
-              <button
+              <AsyncActionButton
                 onClick={handleBulkImport}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                loadingText="Importing questions..."
               >
                 Import Valid Rows
-              </button>
+              </AsyncActionButton>
 
             </div>
 
@@ -936,18 +1073,70 @@ function QuestionsPage() {
               </h2>
 
               <button
-                onClick={() => {
-                  setShowForm(false);
-                }}
+                onClick={closeQuestionForm}
                 className="text-xl font-bold"
               >
                 ×
               </button>
             </div>
 
+            {editingQuestionId && (
+              <div className="mb-5 rounded border border-amber-300 bg-amber-50 p-4">
+                <label className="flex cursor-pointer items-center gap-3 font-semibold">
+                  <input
+                    checked={advancedEditEnabled}
+                    onChange={(event) => toggleAdvancedEdit(event.target.checked)}
+                    type="checkbox"
+                  />
+                  Advanced edit: unlock question content
+                </label>
+                {!advancedEditEnabled ? (
+                  <p className="mt-2 text-sm text-gray-700">
+                    Question text, image, options, correct answer, and marks are read-only. Explanation fields remain editable.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    <p className="text-sm text-gray-700">Choose how to apply this exceptional edit:</p>
+                    <label className="flex cursor-pointer items-start gap-2 text-sm">
+                      <input
+                        checked={editStrategy === "copy-and-supersede"}
+                        name="editStrategy"
+                        onChange={() => {
+                          setEditStrategy("copy-and-supersede");
+                          setRegradeAttempts(false);
+                        }}
+                        type="radio"
+                      />
+                      <span><strong>Create a new version and supersede the previous question.</strong> Existing mock tests and attempts keep the previous version.</span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-2 text-sm">
+                      <input
+                        checked={editStrategy === "update-original"}
+                        name="editStrategy"
+                        onChange={() => setEditStrategy("update-original")}
+                        type="radio"
+                      />
+                      <span><strong>Update the original question.</strong> Existing mock tests and past reviews use the edited content; past review answers may be reclassified, while saved scores stay unchanged.</span>
+                    </label>
+                    {editStrategy === "update-original" && (
+                      <label className="ml-6 flex cursor-pointer items-start gap-2 rounded border border-blue-200 bg-blue-50 p-3 text-sm">
+                        <input
+                          checked={regradeAttempts}
+                          onChange={(event) => setRegradeAttempts(event.target.checked)}
+                          type="checkbox"
+                        />
+                        <span><strong>Regrade submitted attempts that used this question.</strong> This recalculates each affected test using its current question versions, then saves scores, correct/wrong counts, accuracy, and percentage. Previous result values will be kept in the regrade history.</span>
+                      </label>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 mb-4">
              
               <select
+                disabled={questionContentLocked}
                 className="border p-2 rounded"
                 value={formData.subject}
                 onChange={(e) =>
@@ -972,6 +1161,7 @@ function QuestionsPage() {
               </select>
 
               <input
+                disabled={questionContentLocked}
                 placeholder="Topic"
                 className="border p-2 rounded"
                 value={formData.topic}
@@ -984,6 +1174,7 @@ function QuestionsPage() {
               />
 
               <select
+                disabled={questionContentLocked}
                 className="border p-2 rounded"
                 value={formData.difficulty}
                 onChange={(e) =>
@@ -1000,8 +1191,9 @@ function QuestionsPage() {
             </div>
             
             <textarea
+              disabled={questionContentLocked}
               placeholder="Question Text"
-              className="w-full border p-2 rounded mb-4"
+              className="w-full border p-2 rounded mb-4 disabled:bg-gray-100 disabled:text-gray-600"
               rows="4"
               value={formData.questionText}
               onChange={(e) =>
@@ -1012,10 +1204,17 @@ function QuestionsPage() {
               }
             />
 
+            <label className="mb-4 block text-sm font-medium">
+              Question image URL (optional)
+              <input disabled={questionContentLocked} className="mt-1 w-full border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600" placeholder="https://example.com/question-image.png" type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} />
+            </label>
+            {formData.imageUrl && <img alt="Question image preview" className="mb-4 max-h-64 max-w-full rounded border object-contain" src={formData.imageUrl} />}
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <input
+                disabled={questionContentLocked}
                 placeholder="Option A"
-                className="border p-2 rounded"
+                className="border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                 value={formData.optionA}
                 onChange={(e) =>
                   setFormData({
@@ -1026,8 +1225,9 @@ function QuestionsPage() {
               />
 
               <input
+                disabled={questionContentLocked}
                 placeholder="Option B"
-                className="border p-2 rounded"
+                className="border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                 value={formData.optionB}
                 onChange={(e) =>
                   setFormData({
@@ -1038,8 +1238,9 @@ function QuestionsPage() {
               />
 
               <input
+                disabled={questionContentLocked}
                 placeholder="Option C"
-                className="border p-2 rounded"
+                className="border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                 value={formData.optionC}
                 onChange={(e) =>
                   setFormData({
@@ -1050,8 +1251,9 @@ function QuestionsPage() {
               />
 
               <input
+                disabled={questionContentLocked}
                 placeholder="Option D"
-                className="border p-2 rounded"
+                className="border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                 value={formData.optionD}
                 onChange={(e) =>
                   setFormData({
@@ -1064,6 +1266,7 @@ function QuestionsPage() {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <select
+                disabled={questionContentLocked}
                 className="border p-2 rounded"
                 value={formData.correctOption}
                 onChange={(e) =>
@@ -1087,8 +1290,9 @@ function QuestionsPage() {
                 </label>
 
                 <input
+                  disabled={questionContentLocked}
                   type="number"
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                   value={formData.marks}
                   onChange={(e) =>
                     setFormData({
@@ -1105,8 +1309,9 @@ function QuestionsPage() {
                 </label>
 
                 <input
+                  disabled={questionContentLocked}
                   type="number"
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded disabled:bg-gray-100 disabled:text-gray-600"
                   value={formData.negativeMarks}
                   onChange={(e) =>
                     setFormData({
@@ -1131,6 +1336,18 @@ function QuestionsPage() {
               }
             />
 
+            <div className="grid gap-4 mb-4">
+              <label className="block text-sm font-medium">
+                Explanation image URL (optional)
+                <input className="mt-1 w-full border p-2 rounded" placeholder="https://example.com/solution-diagram.png" type="url" value={formData.explanationImageUrl} onChange={(e) => setFormData({ ...formData, explanationImageUrl: e.target.value })} />
+                {formData.explanationImageUrl && <img alt="Explanation image preview" className="mt-2 max-h-64 max-w-full rounded border object-contain" src={formData.explanationImageUrl} />}
+              </label>
+              <label className="block text-sm font-medium">
+                Solution video URL (optional)
+                <input className="mt-1 w-full border p-2 rounded" placeholder="https://youtube.com/watch?v=..." type="url" value={formData.solutionVideoUrl} onChange={(e) => setFormData({ ...formData, solutionVideoUrl: e.target.value })} />
+              </label>
+            </div>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={resetForm}
@@ -1140,20 +1357,25 @@ function QuestionsPage() {
               </button>
 
               <button
-                onClick={() => {
-                  setShowForm(false);
-                }}
+                onClick={closeQuestionForm}
                 className="bg-gray-500 text-white px-4 py-2 rounded"
               >
                 Cancel
               </button>
 
-              <button
+              <AsyncActionButton
                 onClick={handleSubmit}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
+                loadingText={editingQuestionId ? "Saving changes..." : "Adding question..."}
               >
-                Submit
-              </button>
+                {editingQuestionId
+                  ? !advancedEditEnabled
+                    ? "Save Explanation"
+                    : editStrategy === "copy-and-supersede"
+                      ? "Create New Version"
+                      : "Update Original"
+                  : "Add Question"}
+              </AsyncActionButton>
             </div>
           </div>
         </div>
@@ -1242,11 +1464,18 @@ function QuestionsPage() {
 
                 </h3>
 
-                <div className="border rounded p-4 bg-slate-50">
+                <div className="border rounded p-4 bg-slate-50 whitespace-pre-wrap">
 
                   {viewQuestion.questionText}
 
                 </div>
+                {viewQuestion.imageUrl && (
+                  <img
+                    alt={`Question ${viewQuestion.questionCode}`}
+                    className="mt-4 max-h-96 max-w-full rounded border object-contain"
+                    src={viewQuestion.imageUrl}
+                  />
+                )}
 
               </div>
 
@@ -1254,7 +1483,7 @@ function QuestionsPage() {
 
               <div className="space-y-3 mb-6">
 
-                {viewQuestion.options.map((option) => (
+                {viewQuestion.options.filter((option) => option.text?.trim()).map((option) => (
 
                   <div
                     key={option.label}
@@ -1303,11 +1532,13 @@ function QuestionsPage() {
 
                 </strong>
 
-                <p className="mt-2">
+                <p className="mt-2 whitespace-pre-wrap">
 
                   {viewQuestion.explanation}
 
                 </p>
+                {viewQuestion.explanationImageUrl && <img alt={`Explanation for ${viewQuestion.questionCode}`} className="mt-3 max-h-96 w-auto rounded border object-contain" src={viewQuestion.explanationImageUrl} />}
+                {viewQuestion.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={viewQuestion.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
 
               </div>
 
@@ -1334,6 +1565,20 @@ function QuestionsPage() {
 
       {/*---------------------------------------------------------- */}
       <div className="bg-white rounded shadow p-4 overflow-x-auto">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <label className="sr-only" htmlFor="question-code-search">Search by question code</label>
+          <input
+            id="question-code-search"
+            type="search"
+            value={questionCodeSearch}
+            onChange={(event) => setQuestionCodeSearch(event.target.value)}
+            placeholder="Search by question code (e.g. 01001)"
+            className="w-full sm:max-w-md rounded border border-gray-300 px-3 py-2"
+          />
+          <span className="text-sm text-gray-600">
+            Showing {filteredQuestions.length} of {questions.length} questions
+          </span>
+        </div>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-200">
@@ -1346,7 +1591,7 @@ function QuestionsPage() {
           </thead>
 
           <tbody>
-            {questions.map((question) => (
+            {filteredQuestions.map((question) => (
               <tr
                 key={question._id}
                 className="border-b"
@@ -1383,16 +1628,24 @@ function QuestionsPage() {
                       Edit
                     </button>
 
-                    <button
+                    <AsyncActionButton
                       onClick={() => handleDelete(question._id)}
                       className=" w-20 bg-red-500 text-white px-3 py-1 rounded"
+                      loadingText="Deleting..."
                     >
                       Delete
-                    </button>
+                    </AsyncActionButton>
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredQuestions.length === 0 && (
+              <tr>
+                <td className="p-6 text-center text-gray-500" colSpan={5}>
+                  {questionCodeSearch.trim() ? "No questions match that code." : "No questions available."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

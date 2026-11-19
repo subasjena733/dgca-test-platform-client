@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../services/api";
+import StudentNavbar from "./StudentNavbar";
 
 function StudentMockInstructionsPage() {
   const { id } = useParams();
@@ -23,16 +24,23 @@ function StudentMockInstructionsPage() {
   }, []);
 
   if (!mockTest) {
-    return <p className="p-6">Loading...</p>;
+    return (
+      <>
+        <StudentNavbar />
+        <p className="p-4 sm:p-6 pt-20">Loading...</p>
+      </>
+    );
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">
+    <>
+    <StudentNavbar />
+    <div className="p-4 sm:p-6 pt-20 max-w-3xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 break-words">
         {mockTest.title}
       </h1>
 
-      <div className="bg-white rounded shadow p-6 space-y-3">
+      <div className="bg-white rounded shadow p-4 sm:p-6 space-y-3">
         <p>
           <strong>Subject:</strong> {mockTest.subject}
         </p>
@@ -61,12 +69,13 @@ function StudentMockInstructionsPage() {
               }
             )
           }
-          className="mt-4 bg-green-600 text-white px-5 py-2 rounded"
+          className="mt-4 w-full sm:w-auto bg-green-600 text-white px-5 py-3 sm:py-2 rounded"
         >
           Start Now
         </button>
       </div>
     </div>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import AsyncActionButton from "../../components/AsyncActionButton";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
@@ -142,7 +143,7 @@ function MockTestsPage() {
 
       resetForm();      // Clear everything
       setShowForm(false);
-      fetchMockTests();
+      await fetchMockTests();
     } catch (error) {
       console.error(error);
       alert("Failed to create mock test");
@@ -184,9 +185,9 @@ function MockTestsPage() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-3 sm:items-center sm:p-5">
+          <div className="my-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg">
+            <div className="z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
               <h2 className="text-2xl font-bold">
                 Add Mock Test
               </h2>
@@ -199,6 +200,7 @@ function MockTestsPage() {
               </button>
             </div>
 
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
             <div className="space-y-4">
               <input
                 name="title"
@@ -368,14 +370,15 @@ function MockTestsPage() {
                       <div className="border rounded p-3 bg-gray-50">
                         <strong>Question</strong>
 
-                        <p className="mt-2">
+                        <p className="mt-2 whitespace-pre-wrap">
                           {viewQuestion.questionText}
                         </p>
+                        {viewQuestion.imageUrl && <img alt={`Question ${viewQuestion.questionCode}`} className="mt-4 max-h-96 w-auto max-w-full rounded border object-contain" src={viewQuestion.imageUrl} />}
                       </div>
 
                       <div className="space-y-2">
 
-                        {viewQuestion.options.map((option) => (
+                        {viewQuestion.options.filter((option) => option.text?.trim()).map((option) => (
 
                           <div
                             key={option.label}
@@ -413,10 +416,9 @@ function MockTestsPage() {
                         </strong>
 
                         <div className="border rounded p-3 bg-gray-50 mt-2">
-
-                          {viewQuestion.explanation ||
-                            "No explanation available."}
-
+                          <p className="whitespace-pre-wrap">{viewQuestion.explanation || "No explanation available."}</p>
+                          {viewQuestion.explanationImageUrl && <img alt={`Explanation for ${viewQuestion.questionCode}`} className="mt-3 max-h-96 w-auto max-w-full rounded border object-contain" src={viewQuestion.explanationImageUrl} />}
+                          {viewQuestion.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={viewQuestion.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
                         </div>
 
                       </div>
@@ -480,7 +482,7 @@ function MockTestsPage() {
 
                         <div className="flex justify-between items-center mb-3">
 
-                          <h3 className="text-xl font-bold">
+                          <h3 className="text-xl font-bold whitespace-pre-wrap">
                             Q{index + 1}. {question.questionText}
                           </h3>
 
@@ -489,6 +491,8 @@ function MockTestsPage() {
                           </span>
 
                         </div>
+
+                        {question.imageUrl && <img alt={`Question ${question.questionCode}`} className="mb-4 max-h-96 w-auto max-w-full rounded border object-contain" src={question.imageUrl} />}
 
                         {/* Metadata */}
 
@@ -525,7 +529,7 @@ function MockTestsPage() {
 
                         <div className="space-y-2 mb-4">
 
-                          {question.options.map((option) => (
+                          {question.options.filter((option) => option.text?.trim()).map((option) => (
 
                             <div
                               key={option.label}
@@ -569,11 +573,9 @@ function MockTestsPage() {
                           </p>
 
                           <div className="border rounded bg-gray-50 p-3">
-
-                            {question.explanation
-                              ? question.explanation
-                              : "No explanation provided."}
-
+                            <p className="whitespace-pre-wrap">{question.explanation || "No explanation provided."}</p>
+                            {question.explanationImageUrl && <img alt={`Explanation for ${question.questionCode}`} className="mt-3 max-h-96 w-auto max-w-full rounded border object-contain" src={question.explanationImageUrl} />}
+                            {question.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={question.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
                           </div>
 
                         </div>
@@ -622,13 +624,15 @@ function MockTestsPage() {
                   Reset
                 </button>
 
-                <button
+              <AsyncActionButton
                   onClick={handleSubmit}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                loadingText="Creating mock test..."
                 >
                   Create Mock Test
-                </button>
+              </AsyncActionButton>
               </div>
+            </div>
             </div>
           </div>
         </div>

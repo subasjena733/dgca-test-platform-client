@@ -18,6 +18,19 @@ import {
 function StudentPerformancePage() {
   const [performance, setPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => window.matchMedia("(max-width: 639px)").matches
+  );
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 639px)");
+    const updateViewport = (event) => setIsMobileViewport(event.matches);
+
+    setIsMobileViewport(mobileQuery.matches);
+    mobileQuery.addEventListener("change", updateViewport);
+
+    return () => mobileQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   useEffect(() => {
     const fetchPerformance = async () => {
@@ -108,7 +121,7 @@ function StudentPerformancePage() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6 pt-20">
         Loading performance...
       </div>
     );
@@ -122,7 +135,11 @@ function StudentPerformancePage() {
     );
   }
 
-  const chartWidth = Math.max(performance.length * 160, 900);
+  // Keep tests closer together while leaving enough room for date labels.
+  const chartWidth = isMobileViewport
+    ? Math.max(performance.length * 72, 360)
+    : Math.max(performance.length * 160, 900);
+  const chartBarSize = isMobileViewport ? 18 : 45;
   
   const TrendTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
@@ -157,9 +174,9 @@ function StudentPerformancePage() {
   return (
     <>
     <StudentNavbar/>
-    <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pt-20 min-w-0">
 
-      <h1 className="text-3xl font-bold">
+      <h1 className="text-2xl sm:text-3xl font-bold">
         Performance Dashboard
       </h1>
 
@@ -167,7 +184,7 @@ function StudentPerformancePage() {
             FRAME 1
       ========================== */}
 
-      <div className="bg-white rounded shadow p-6 overflow-x-auto">
+      <div className="bg-white rounded shadow p-4 sm:p-6 overflow-x-auto">
 
         <h2 className="text-xl font-semibold mb-6">
           Test-wise Percentage
@@ -219,7 +236,9 @@ function StudentPerformancePage() {
               dataKey="percentage"
               fill="#2563eb"
               name="Percentage"
-              barSize={45}
+              barSize={chartBarSize}
+              maxBarSize={chartBarSize}
+              barCategoryGap={isMobileViewport ? "12%" : "20%"}
               radius={[6, 6, 0, 0]}
             />
           </BarChart>
@@ -231,7 +250,7 @@ function StudentPerformancePage() {
             FRAME 2
       ========================== */}
 
-      <div className="bg-white rounded shadow p-6">
+      <div className="bg-white rounded shadow p-4 sm:p-6">
 
         <h2 className="text-xl font-semibold mb-4">
           Performance Trend

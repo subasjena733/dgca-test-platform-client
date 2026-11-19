@@ -50,7 +50,7 @@ function Footer() {
 
             </h3>
 
-            <p className="mt-5 text-slate-300 leading-8">
+            <p className="mt-5 text-xl text-slate-300 leading-8">
 
               SkyPrep is designed to help aviation aspirants
               prepare effectively for DGCA examinations with
@@ -69,7 +69,7 @@ function Footer() {
 
             </h3>
 
-            <ul className="mt-5 space-y-3 text-slate-300">
+            <ul className="mt-5 text-xl space-y-3 text-slate-300">
 
               <li>Features</li>
               <li>Subjects</li>

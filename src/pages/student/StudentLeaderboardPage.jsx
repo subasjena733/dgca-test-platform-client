@@ -54,13 +54,13 @@ function StudentLeaderboardPage() {
   return (
     <>
     <StudentNavbar/>
-    <div className="p-6 max-w-5xl mx-auto pt-20">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto pt-20">
       <h1 className="text-2xl font-bold mb-6">
         Leaderboard
       </h1>
 
-      <div className="bg-white rounded shadow overflow-hidden">
-        <table className="w-full border-collapse">
+      <div className="bg-white rounded shadow overflow-x-auto">
+        <table className="w-full min-w-[520px] border-collapse text-sm sm:text-base">
           <thead className="bg-gray-200">
             <tr>
               <th className="border p-3">Rank</th>

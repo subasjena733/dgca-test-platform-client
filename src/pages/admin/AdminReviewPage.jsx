@@ -71,6 +71,26 @@ function AdminReviewPage() {
         </p>
         </div>
 
+        {reviewData.regradeHistory?.length > 0 && (
+          <section className="bg-amber-50 border border-amber-200 rounded p-4 mb-6">
+            <h2 className="font-bold mb-3">Regrade History</h2>
+            <div className="space-y-3">
+              {reviewData.regradeHistory.map((entry, index) => (
+                <div key={`${entry._id || entry.regradedAt}-${index}`} className="border-t border-amber-200 pt-3 text-sm">
+                  <p>
+                    <strong>{entry.questionCode}</strong> regraded on {new Date(entry.regradedAt).toLocaleString()}
+                    {entry.adminId?.name ? ` by ${entry.adminId.name}` : ""}.
+                  </p>
+                  <p>
+                    Score: {entry.previousScore} → {entry.newScore}; correct: {entry.previousCorrectCount} → {entry.newCorrectCount}; wrong: {entry.previousWrongCount} → {entry.newWrongCount}; accuracy: {entry.previousAccuracy}% → {entry.newAccuracy}%; percentage: {entry.previousPercentage}% → {entry.newPercentage}%.
+                  </p>
+                  {entry.reason && <p className="text-gray-600">{entry.reason}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
       <div className="space-y-8">
         {reviewData.review.map((question, index) => {
           let badgeText = "";
@@ -119,7 +139,7 @@ function AdminReviewPage() {
 
               {/* Options */}
               <div className="space-y-2">
-                {question.options.map((option) => {
+                {question.options.filter((option) => option.text?.trim()).map((option) => {
                   const isCorrect =
                     option.label === question.correctOption;
 

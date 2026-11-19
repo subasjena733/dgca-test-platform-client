@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
+import AsyncActionButton from "../../components/AsyncActionButton";
 
 function StudentAttemptPage() {
   const navigate = useNavigate();
@@ -169,7 +170,7 @@ function StudentAttemptPage() {
     });
   };
 
-  const handleClearResponse = (questionId) => {
+  const handleClearResponse = async (questionId) => {
     const updatedAnswers = {
       ...selectedAnswersRef.current,
     };
@@ -179,12 +180,12 @@ function StudentAttemptPage() {
     selectedAnswersRef.current = updatedAnswers;
     setSelectedAnswers(updatedAnswers);
 
-    saveProgress({
+    await saveProgress({
       selectedAnswersValue: updatedAnswers,
     });
   };
 
-  const handleReviewToggle = () => {
+  const handleReviewToggle = async () => {
     const updatedTimeMap = saveCurrentQuestionTime();
 
     const questionId =
@@ -199,7 +200,7 @@ function StudentAttemptPage() {
     reviewQuestionsRef.current = updatedReview;
     setReviewQuestions(updatedReview);
 
-    saveProgress({
+    await saveProgress({
       reviewQuestionsValue: updatedReview,
       questionTimeMapValue: updatedTimeMap,
     });
@@ -463,20 +464,20 @@ function StudentAttemptPage() {
   const seconds = timeLeft % 60;
   
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
+    <div className="flex flex-col p-3 sm:p-6 max-w-4xl mx-auto w-full min-w-0">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 break-words">
         {mockTest.title}
       </h1>
 
       {/* Timer */}
-      <div className="mb-4 text-lg font-bold text-red-600">
+      <div className="mb-4 text-base sm:text-lg font-bold text-red-600">
         Time Left:{" "}
         {String(minutes).padStart(2, "0")}:
         {String(seconds).padStart(2, "0")}
       </div>
 
       {/* Question Palette */}
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="order-4 sm:order-3 mb-6 flex max-h-36 sm:max-h-48 overflow-y-auto flex-wrap gap-2 rounded bg-white/70 p-2">
         {mockTest.questions.map((question, index) => {
           const isCurrent = index === currentQuestionIndex;
           const isAnswered = selectedAnswers[question._id];
@@ -488,7 +489,7 @@ function StudentAttemptPage() {
             <button
               key={question._id}
               onClick={() => moveToQuestion(index)}
-              className={`w-10 h-10 rounded font-semibold ${
+              className={`w-10 h-10 shrink-0 rounded font-semibold ${
                 isCurrent
                   ? "bg-blue-600 text-white"
                   : isAnsweredAndReview
@@ -508,18 +509,20 @@ function StudentAttemptPage() {
         })}
       </div>
 
-      <div className="bg-white rounded shadow p-6">
+      <div className="order-3 sm:order-4 bg-white rounded shadow p-3 sm:p-6">
         <p className="font-semibold mb-4">
           Question {currentQuestionIndex + 1} of{" "}
           {mockTest.questions.length}
         </p>
 
-        <h2 className="text-lg font-medium mb-4">
+        <h2 className="text-base sm:text-lg font-medium mb-4 whitespace-pre-wrap break-words">
           {currentQuestion.questionText}
         </h2>
 
+        {currentQuestion.imageUrl && <img alt={`Question ${currentQuestion.questionCode || currentQuestionIndex + 1}`} className="mb-5 max-h-[28rem] w-auto max-w-full rounded border object-contain" src={currentQuestion.imageUrl} />}
+
         <div className="space-y-3">
-          {currentQuestion.options.map((option) => {
+          {currentQuestion.options.filter((option) => option.text?.trim()).map((option) => {
             const isSelected =
               selectedAnswers[currentQuestion._id] ===
               option.label;
@@ -527,7 +530,7 @@ function StudentAttemptPage() {
               return (
                 <label
                   key={option.label}
-                  className={`border rounded p-3 cursor-pointer flex gap-3 items-start ${
+                  className={`border rounded p-2 sm:p-3 cursor-pointer flex gap-3 items-start min-w-0 ${
                     isSelected
                       ? "bg-blue-100 border-blue-500"
                       : "bg-white"
@@ -541,7 +544,7 @@ function StudentAttemptPage() {
                   className="mt-1"
                 />
 
-                <span>
+                <span className="min-w-0 break-words">
                   <strong>{option.label}:</strong>{" "}
                   {option.text}
                 </span>
@@ -550,18 +553,18 @@ function StudentAttemptPage() {
           })}
         </div>
 
-        <div className="mt-6 flex justify-between">
+        <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-between gap-2">
           <button
             disabled={currentQuestionIndex === 0}
             onClick={() => moveToQuestion(currentQuestionIndex - 1)}
-            className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="order-1 sm:order-none bg-gray-500 text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded disabled:opacity-50"
           >
             Previous
           </button>
 
-          <button
+          <AsyncActionButton
             onClick={handleReviewToggle}
-            className={`text-white px-4 py-2 rounded ${
+            className={`order-4 sm:order-none col-span-2 sm:col-span-auto text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded ${
               isCurrentQuestionInReview
                 ? "bg-gray-600"
                 : "bg-purple-600"
@@ -570,19 +573,20 @@ function StudentAttemptPage() {
             {isCurrentQuestionInReview
               ? "Clear Review"
               : "Mark for Review"}
-          </button>
+          </AsyncActionButton>
 
-          <button
+          <AsyncActionButton
             onClick={() =>
               handleClearResponse(currentQuestion._id)
             }
             disabled={
               !selectedAnswers[currentQuestion._id]
             }
-            className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="order-3 sm:order-none col-span-2 sm:col-span-auto bg-red-500 text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            loadingText="Saving..."
           >
             Clear Response
-          </button>
+          </AsyncActionButton>
 
           <button
             disabled={
@@ -590,19 +594,20 @@ function StudentAttemptPage() {
               mockTest.questions.length - 1
             }
             onClick={() => moveToQuestion(currentQuestionIndex + 1)}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="order-2 sm:order-none bg-blue-600 text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded disabled:opacity-50"
           >
             Next
           </button>
         </div>
 
         <div className="mt-6 flex justify-center">
-          <button
+          <AsyncActionButton
             onClick={handleManualSubmit}
-            className="bg-red-600 text-white px-6 py-3 rounded font-semibold"
+            className="w-full sm:w-auto bg-red-600 text-white px-6 py-3 rounded font-semibold"
+            loadingText="Submitting test..."
           >
             Submit Test
-          </button>
+          </AsyncActionButton>
         </div>
       </div>
     </div>

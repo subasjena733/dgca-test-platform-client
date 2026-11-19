@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import AsyncActionButton from "../../components/AsyncActionButton";
 
 function PasswordResetRequestsPage() {
   const [requests, setRequests] = useState([]);
@@ -39,7 +40,7 @@ function PasswordResetRequestsPage() {
 
       alert("Password reset successfully.");
 
-      fetchRequests();
+      await fetchRequests();
 
     } catch (error) {
       alert(
@@ -64,7 +65,7 @@ function PasswordResetRequestsPage() {
         `/admin/password-reset-request/${id}`
       );
 
-      fetchRequests();
+      await fetchRequests();
 
     } catch (error) {
       console.error(error);
@@ -124,23 +125,25 @@ function PasswordResetRequestsPage() {
 
               <td className="border p-2">
 
-                <button
+                <AsyncActionButton
                   onClick={() =>
                     resetPassword(req._id)
                   }
                   className="bg-green-600 text-white px-3 py-1 rounded mr-2"
+                  loadingText="Resetting..."
                 >
                   Reset Password
-                </button>
+                </AsyncActionButton>
 
-                <button
+                <AsyncActionButton
                   onClick={() =>
                     rejectRequest(req._id)
                   }
                   className="bg-red-600 text-white px-3 py-1 rounded"
+                  loadingText="Rejecting..."
                 >
                   Reject
-                </button>
+                </AsyncActionButton>
 
               </td>
 

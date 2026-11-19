@@ -12,8 +12,8 @@ function LandingPage() {
       <Hero />
       <Features />
       <HowItWorks />
-      <Footer />
       <WhySkyPrep />
+      <Footer />
     </>
   );
 }

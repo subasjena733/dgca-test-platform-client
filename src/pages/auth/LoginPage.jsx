@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import AuthBackground from "../../components/AuthBackground";
+import PasswordInput from "../../components/PasswordInput";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ function LoginPage() {
     email: "",
     password: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,6 +22,8 @@ function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       const res = await api.post(
@@ -51,6 +55,8 @@ function LoginPage() {
         error.response?.data?.message ||
         "Login failed"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -59,7 +65,7 @@ function LoginPage() {
       <div className="min-h-screen flex justify-center items-center">
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-lg w-96 space-y-4"
+          className="bg-white/10 p-8 rounded-lg w-96 space-y-4"
         >
           <h1 className="text-2xl font-bold">
             Login
@@ -72,16 +78,15 @@ function LoginPage() {
             onChange={handleChange}
           />
 
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             placeholder="Password"
             className="w-full border p-2"
             onChange={handleChange}
           />
 
-          <button className="w-full bg-blue-600 text-white p-2 rounded">
-            Login
+          <button disabled={isSubmitting} aria-busy={isSubmitting} className="w-full bg-blue-600 text-white p-2 rounded disabled:cursor-wait disabled:opacity-60">
+            {isSubmitting ? "Signing in..." : "Login"}
           </button>
 
           <div className="text-right mt-3">

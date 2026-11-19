@@ -34,7 +34,7 @@ const features = [
 
 function Features() {
   return (
-    <section className="relative -mt-24 z-20 flex justify-center px-6">
+    <section className="relative -mt-24 z-20 flex justify-center px-6 lg:scale-80 ">
 
       <div className="w-full max-w-7xl">
 
@@ -72,11 +72,11 @@ function Features() {
 
                 <div>
 
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 className="text-2xl font-bold text-slate-900">
                     {item.title}
                   </h3>
 
-                  <p className="mt-3 text-slate-600 leading-7">
+                  <p className="mt-3 text-slate-600 text-xl leading-7">
                     {item.description}
                   </p>
 

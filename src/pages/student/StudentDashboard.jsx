@@ -46,7 +46,7 @@ function StudentDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
       {/* Logout */}
 
       <div className="flex justify-end mb-6">
@@ -60,13 +60,13 @@ function StudentDashboard() {
 
       {/* Welcome Banner */}
 
-      <div className="bg-linear-to-r from-blue-700 to-indigo-700 rounded-2xl shadow-lg text-white p-8 mb-8">
+      <div className="bg-linear-to-r from-blue-700 to-indigo-700 rounded-2xl shadow-lg text-white p-5 sm:p-8 mb-6 sm:mb-8">
 
-        <h1 className="text-4xl font-bold">
+        <h1 className="text-2xl sm:text-4xl font-bold">
           Welcome Back 👋
         </h1>
 
-        <p className="mt-2 text-lg text-blue-100">
+        <p className="mt-2 text-base sm:text-lg text-blue-100">
           Every mock test brings you one step closer to your dream airline.
         </p>
 
@@ -76,7 +76,7 @@ function StudentDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 sm:p-6">
           <FaBookOpen className="text-blue-600 text-3xl mb-3" />
 
           <p className="text-gray-500">
@@ -88,7 +88,7 @@ function StudentDashboard() {
           </h2>
         </div>
 
-        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 sm:p-6">
           <FaClipboardList className="text-green-600 text-3xl mb-3" />
 
           <p className="text-gray-500">
@@ -100,7 +100,7 @@ function StudentDashboard() {
           </h2>
         </div>
 
-        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 sm:p-6">
           <FaBullseye className="text-red-500 text-3xl mb-3" />
 
           <p className="text-gray-500">
@@ -112,7 +112,7 @@ function StudentDashboard() {
           </h2>
         </div>
 
-        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+        <div className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 sm:p-6">
           <FaStar className="text-yellow-500 text-3xl mb-3" />
 
           <p className="text-gray-500">
@@ -138,7 +138,7 @@ function StudentDashboard() {
 
         <div
           onClick={() => navigate("/student/mock-tests")}
-          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-8"
+          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8"
         >
           <FaBookOpen className="text-blue-600 text-5xl mb-4" />
 
@@ -156,7 +156,7 @@ function StudentDashboard() {
 
         <div
           onClick={() => navigate("/student/performance")}
-          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-8"
+          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8"
         >
           <FaChartLine className="text-purple-600 text-5xl mb-4" />
 
@@ -174,7 +174,7 @@ function StudentDashboard() {
 
         <div
           onClick={() => navigate("/student/profile")}
-          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-8"
+          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8"
         >
           <FaUser className="text-slate-700 text-5xl mb-4" />
 
@@ -192,7 +192,7 @@ function StudentDashboard() {
 
         <div
           onClick={() => alert("Help & Support coming soon!")}
-          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-8"
+          className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8"
         >
           <FaQuestionCircle className="text-orange-500 text-5xl mb-4" />
 
@@ -210,7 +210,7 @@ function StudentDashboard() {
 
       {/* Recent Activity */}
 
-      <div className="mt-10 bg-white rounded-xl shadow p-6">
+      <div className="mt-8 sm:mt-10 bg-white rounded-xl shadow p-5 sm:p-6">
 
         <h2 className="text-2xl font-bold mb-4">
           Recent Activity

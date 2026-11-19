@@ -4,15 +4,15 @@ function Navbar() {
   return (
     <header className="absolute top-0 left-0 w-full z-50">
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-6">
+      <div className="max-w-7xl mx-auto px-2 lg:px-10 py-6">
 
         <div className="flex items-start justify-between">
 
           {/* Logo Section */}
 
-          <div>
+          <div className=" lg:scale-80">
 
-            <div className="flex items-end gap-5">
+            <div className="flex items-end gap-2">
 
               <img
                 src="/images/logo.png"
@@ -55,10 +55,9 @@ function Navbar() {
               bg-blue-600
               hover:bg-blue-700
               text-white
-              font-semibold
-              px-6
-              py-3
-              rounded-xl
+              px-4
+              py-2
+              rounded-lg
               shadow-lg
               transition
             "

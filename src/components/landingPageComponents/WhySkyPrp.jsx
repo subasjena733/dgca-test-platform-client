@@ -34,7 +34,7 @@ const items = [
 
 function WhySkyPrep() {
   return (
-    <section className="bg-slate-50 py-28">
+    <section className="bg-slate-50 py-5 lg:scale-80">
 
       <div className="max-w-7xl mx-auto px-6">
 
@@ -74,7 +74,7 @@ function WhySkyPrep() {
 
               </h3>
 
-              <p className="mt-5 leading-8 text-slate-600">
+              <p className="mt-5 text-xl leading-8 text-slate-600">
 
                 {item.description}
 

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Hero() {
   return (
-   <section className="relative min-h-screen overflow-hidden">
+   <section className="relative h-[98vh] overflow-hidden">
 
   {/* Desktop */}
 
@@ -48,7 +48,7 @@ function Hero() {
 
             {/* Tagline */}
 
-            <h2 className=" text-3xl lg:text-6xl font-bold leading-tight">
+            <h2 className=" text-2xl md:text-4xl lg:text-4xl font-bold leading-tight">
 
               <span className="text-slate-900">
 
@@ -68,11 +68,11 @@ function Hero() {
 
             {/* Divider */}
 
-            <div className="mt-8 w-28 h-1 bg-blue-600 rounded-full"></div>
+            <div className="mt-4 w-28 h-1 bg-blue-600 rounded-full"></div>
 
             {/* Description */}
 
-            <p className="mt-10 max-w-2xl text-lg lg:text-2xl leading-9 black">
+            <p className="mt-5 max-w-2xl text-xl md:text-2xl lg:text-2xl leading-9 black">
 
               Practice smarter with structured question banks,
               realistic mock tests and detailed performance analytics
@@ -88,14 +88,14 @@ function Hero() {
                 inline-flex
                 items-center
                 justify-center
-                mt-12
-                px-10
-                py-4
-                rounded-xl
+                mt-8
+                px-5
+                py-2
+                rounded-lg
                 bg-blue-600
                 hover:bg-blue-700
                 text-white
-                text-xl
+                text-lg
                 font-semibold
                 shadow-xl
                 transition

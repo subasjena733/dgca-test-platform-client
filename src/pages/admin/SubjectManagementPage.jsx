@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import AsyncActionButton from "../../components/AsyncActionButton";
 import api from "../../services/api";
 
 function SubjectManagementPage() {
@@ -64,7 +65,7 @@ function SubjectManagementPage() {
         subjectPrefix: ""
       });
 
-      fetchSubjects();
+      await fetchSubjects();
 
     } catch (error) {
 
@@ -113,12 +114,13 @@ function SubjectManagementPage() {
 
         </div>
 
-        <button
+        <AsyncActionButton
           onClick={handleSubmit}
           className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
+          loadingText="Adding subject..."
         >
           Add Subject
-        </button>
+        </AsyncActionButton>
 
       </div>
 

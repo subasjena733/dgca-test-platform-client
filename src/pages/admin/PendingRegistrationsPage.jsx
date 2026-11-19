@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import AsyncActionButton from "../../components/AsyncActionButton";
 
 function PendingRegistrationsPage() {
   const [requests, setRequests] = useState([]);
@@ -34,7 +35,7 @@ function PendingRegistrationsPage() {
 
       alert("Registration approved successfully.");
 
-      fetchRequests();
+      await fetchRequests();
     } catch (error) {
       console.error(error);
 
@@ -57,7 +58,7 @@ function PendingRegistrationsPage() {
 
       alert("Registration rejected successfully.");
 
-      fetchRequests();
+      await fetchRequests();
     } catch (error) {
       console.error(error);
 
@@ -108,23 +109,25 @@ function PendingRegistrationsPage() {
 
               <td className="border p-2">
 
-                <button
+                <AsyncActionButton
                   onClick={() =>
                     approveRequest(req._id)
                   }
                   className="bg-green-600 text-white px-3 py-1 rounded mr-2"
+                  loadingText="Approving..."
                 >
                   Approve
-                </button>
+                </AsyncActionButton>
 
-                <button
+                <AsyncActionButton
                   onClick={() =>
                     rejectRequest(req._id)
                   }
                   className="bg-red-600 text-white px-3 py-1 rounded"
+                  loadingText="Rejecting..."
                 >
                   Reject
-                </button>
+                </AsyncActionButton>
 
               </td>
 

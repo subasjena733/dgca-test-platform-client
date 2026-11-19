@@ -57,7 +57,7 @@ function StudentReviewPage() {
   return (
     <>
     <StudentNavbar/>
-    <div className="p-6 max-w-5xl mx-auto pt-20">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto pt-20 min-w-0">
       <h1 className="text-2xl font-bold mb-2">
         Answer Review
       </h1>
@@ -90,12 +90,12 @@ function StudentReviewPage() {
           return (
             <div
               key={question.questionId}
-              className="bg-white shadow rounded p-6"
+              className="bg-white shadow rounded p-4 sm:p-6 min-w-0"
             >
               {/* Header */}
-              <div className="mb-3 flex justify-between items-start">
+              <div className="mb-3 flex flex-col sm:flex-row sm:justify-between gap-2 items-start min-w-0">
                 <div>
-                  <p className="font-semibold">
+                  <p className="font-semibold break-words">
                     Q{index + 1} — {question.questionCode}
                   </p>
 
@@ -113,13 +113,15 @@ function StudentReviewPage() {
               </div>
 
               {/* Question */}
-              <h2 className="font-medium mb-4">
+              <h2 className="font-medium mb-4 whitespace-pre-wrap break-words">
                 {question.questionText}
               </h2>
 
+              {question.imageUrl && <img alt={`Question ${question.questionCode}`} className="mb-4 max-h-[28rem] w-auto max-w-full rounded border object-contain" src={question.imageUrl} />}
+
               {/* Options */}
               <div className="space-y-2">
-                {question.options.map((option) => {
+                {question.options.filter((option) => option.text?.trim()).map((option) => {
                   const isCorrect =
                     option.label === question.correctOption;
 
@@ -142,7 +144,7 @@ function StudentReviewPage() {
                       className={className}
                     >
                       <strong>{option.label}:</strong>{" "}
-                      {option.text}
+                      <span className="break-words">{option.text}</span>
                     </div>
                   );
                 })}
@@ -173,10 +175,12 @@ function StudentReviewPage() {
 
                 {question.explanation && (
                   <div className="mt-3 bg-yellow-50 p-3 rounded">
-                    <strong>Explanation:</strong>{" "}
-                    {question.explanation}
+                    <strong>Explanation:</strong>
+                    <p className="mt-2 whitespace-pre-wrap">{question.explanation}</p>
                   </div>
                 )}
+                {question.explanationImageUrl && <img alt={`Explanation for ${question.questionCode}`} className="mt-3 max-h-[28rem] w-auto max-w-full rounded border object-contain" src={question.explanationImageUrl} />}
+                {question.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={question.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
               </div>
             </div>
           );

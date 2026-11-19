@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../services/api";
+import AsyncActionButton from "../../components/AsyncActionButton";
 
 function MockTestDetailsPage() {
   const { id } = useParams();
@@ -36,7 +37,7 @@ function MockTestDetailsPage() {
         isPublished: !mockTest.isPublished
       });
 
-      fetchMockTest();
+      await fetchMockTest();
     } catch (error) {
       console.error(error);
     }
@@ -72,7 +73,7 @@ function MockTestDetailsPage() {
       await api.put(`/mock-tests/${id}`, editForm);
 
       setIsEditing(false);
-      fetchMockTest();
+      await fetchMockTest();
     } catch (error) {
       console.error(error);
     }
@@ -103,25 +104,27 @@ function MockTestDetailsPage() {
               Edit
             </button>
 
-            <button 
+            <AsyncActionButton
               onClick={handleDelete}
               className="bg-red-600 text-white px-4 py-2 rounded"
+              loadingText="Deleting mock test..."
             >
               Delete
-            </button>
+            </AsyncActionButton>
 
-            <button
+            <AsyncActionButton
               onClick={togglePublishStatus}
               className={`text-white px-4 py-2 rounded ${
                 mockTest.isPublished
                   ? "bg-orange-500"
                   : "bg-green-600"
               }`}
+              loadingText="Updating..."
             >
               {mockTest.isPublished
                 ? "Unpublish"
                 : "Publish"}
-            </button>
+            </AsyncActionButton>
           </div>
         </div>
 
@@ -167,16 +170,18 @@ function MockTestDetailsPage() {
               key={question._id}
               className="bg-white rounded shadow p-6"
             >
-              <p className="font-semibold mb-2">
+              <p className="font-semibold mb-2 whitespace-pre-wrap">
                 Q{index + 1}. {question.questionText}
               </p>
+
+              {question.imageUrl && <img alt={`Question ${question.questionCode}`} className="mb-4 max-h-96 w-auto max-w-full rounded border object-contain" src={question.imageUrl} />}
 
               <p className="text-sm text-gray-600 mb-3">
                 Code: {question.questionCode}{" | "}Marks: {question.marks}{" | "}-ve Marks: {question.negativeMarks}
               </p>
 
               <div className="space-y-2">
-                {question.options.map((option) => (
+                {question.options.filter((option) => option.text?.trim()).map((option) => (
                   <div
                     key={option.label}
                     className="border rounded p-2"
@@ -190,6 +195,15 @@ function MockTestDetailsPage() {
               <p className="mt-4 text-green-600 font-semibold">
                 Correct Answer: {question.correctOption}
               </p>
+
+              {(question.explanation || question.explanationImageUrl || question.solutionVideoUrl) && (
+                <div className="mt-4 rounded border bg-slate-50 p-4">
+                  <p className="font-semibold">Explanation</p>
+                  {question.explanation && <p className="mt-2 whitespace-pre-wrap">{question.explanation}</p>}
+                  {question.explanationImageUrl && <img alt={`Explanation for ${question.questionCode}`} className="mt-3 max-h-96 w-auto max-w-full rounded border object-contain" src={question.explanationImageUrl} />}
+                  {question.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={question.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -276,12 +290,13 @@ function MockTestDetailsPage() {
                 Cancel
               </button>
 
-              <button
+              <AsyncActionButton
                 onClick={handleUpdate}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
+                loadingText="Saving changes..."
               >
                 Save Changes
-              </button>
+              </AsyncActionButton>
             </div>
           </div>
         </div>

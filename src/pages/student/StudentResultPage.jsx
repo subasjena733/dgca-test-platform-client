@@ -21,6 +21,19 @@ function StudentResultPage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewData, setReviewData] = useState(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => window.matchMedia("(max-width: 639px)").matches
+  );
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 639px)");
+    const updateViewport = (event) => setIsMobileViewport(event.matches);
+
+    setIsMobileViewport(mobileQuery.matches);
+    mobileQuery.addEventListener("change", updateViewport);
+
+    return () => mobileQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -40,6 +53,12 @@ function StudentResultPage() {
       topic: q.topic,
       code: q.questionCode
     })) || [];
+
+  const angleTimeLabels = isMobileViewport || chartData.length > 12;
+  const questionChartWidth = Math.max(
+    isMobileViewport ? 360 : 600,
+    chartData.length * (isMobileViewport ? 48 : 56)
+  );
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -145,15 +164,15 @@ function StudentResultPage() {
   return (
     <>
     <StudentNavbar/>
-    <div className="p-6 max-w-3xl mx-auto pt-20">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto pt-20 min-w-0">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Test Result</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Test Result</h1>
         <p className="text-gray-600">
           {result.mockTestTitle}
         </p>
       </div>
 
-      <div className="bg-white rounded shadow p-6 space-y-3">
+      <div className="bg-white rounded shadow p-4 sm:p-6 space-y-3">
         <p>
           <strong>Score:</strong> {result.score}
         </p>
@@ -193,12 +212,13 @@ function StudentResultPage() {
       </div>
 
       {reviewData && (
-        <div className="mt-8 bg-white rounded shadow p-6">
+        <div className="mt-8 bg-white rounded shadow p-4 sm:p-6">
           <h2 className="text-xl font-bold mb-4">
             Subject-wise Analysis
           </h2>
 
-          <table className="w-full border border-gray-300">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border border-gray-300 text-sm sm:text-base">
             <thead className="bg-gray-100">
               <tr>
                 <th className="border p-2">Subject</th>
@@ -257,6 +277,7 @@ function StudentResultPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -264,13 +285,20 @@ function StudentResultPage() {
         Time Spent Per Question
       </h2>
 
-      <div className="bg-white shadow rounded p-6 mb-8">
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={chartData} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
+      <div className="bg-white shadow rounded p-3 sm:p-6 mb-8">
+        <div className="overflow-x-auto">
+        <div style={{ width: questionChartWidth, height: 300 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 30, right: 20, left: 10, bottom: angleTimeLabels ? 36 : 10 }}>
             <CartesianGrid strokeDasharray="3 3" />
 
             <XAxis
               dataKey="question"
+              height={angleTimeLabels ? 60 : 30}
+              interval={0}
+              tick={angleTimeLabels
+                ? { angle: -45, textAnchor: "end", fontSize: 11 }
+                : { fontSize: 12 }}
               label={{
                 value: "Questions",
                 position: "insideBottom",
@@ -306,6 +334,25 @@ function StudentResultPage() {
                 dataKey="time"
                 position="top"
                 formatter={(value) => formatTime(value)}
+                content={angleTimeLabels ? (props) => {
+                  const { x, y, width, value } = props;
+                  if (x == null || y == null || value == null) return null;
+                  const labelX = x + (width || 0) / 2;
+                  const labelY = y - 5;
+
+                  return (
+                    <text
+                      x={labelX}
+                      y={labelY}
+                      textAnchor="start"
+                      transform={`rotate(-55 ${labelX} ${labelY})`}
+                      fill="#374151"
+                      fontSize={10}
+                    >
+                      {formatTime(value)}
+                    </text>
+                  );
+                } : undefined}
               />
 
               {chartData.map((entry, index) => {
@@ -327,16 +374,18 @@ function StudentResultPage() {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
+        </div>
       </div>
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
         <button
           onClick={() =>
             navigate(
               `/student/review/${result.attemptId}`
             )
           }
-          className="bg-blue-600 text-white px-6 py-3 mx-2 rounded font-semibold"
+          className="bg-blue-600 text-white px-6 py-3 rounded font-semibold"
         >
           Review Answers
         </button>
@@ -352,7 +401,7 @@ function StudentResultPage() {
               }
             )
           }
-          className="bg-green-600 text-white px-6 py-3 mx-2 rounded font-semibold"
+          className="bg-green-600 text-white px-6 py-3 rounded font-semibold"
         >
           Leaderboard
         </button>

@@ -287,11 +287,13 @@ function QuestionBankPage() {
 
                     </h3>
 
-                    <div className="bg-slate-50 border rounded p-4">
+                    <div className="bg-slate-50 border rounded p-4 whitespace-pre-wrap">
 
                       {question.questionText}
 
                     </div>
+
+                    {question.imageUrl && <img alt={`Question ${question.questionCode}`} className="mt-4 max-h-96 w-auto rounded border object-contain" src={question.imageUrl} />}
 
                   </div>
 
@@ -299,7 +301,7 @@ function QuestionBankPage() {
 
                   <div className="space-y-3">
 
-                    {question.options.map((option) => (
+                    {question.options.filter((option) => option.text?.trim()).map((option) => (
 
                       <div
                         key={option.label}
@@ -348,11 +350,14 @@ function QuestionBankPage() {
 
                     </strong>
 
-                    <p className="mt-2">
+                    <p className="mt-2 whitespace-pre-wrap">
 
                       {question.explanation}
 
                     </p>
+
+                    {question.explanationImageUrl && <img alt={`Explanation for ${question.questionCode}`} className="mt-3 max-h-96 w-auto rounded border object-contain" src={question.explanationImageUrl} />}
+                    {question.solutionVideoUrl && <a className="mt-3 inline-block text-blue-700 underline" href={question.solutionVideoUrl} rel="noreferrer" target="_blank">Watch solution video</a>}
 
                   </div>
 

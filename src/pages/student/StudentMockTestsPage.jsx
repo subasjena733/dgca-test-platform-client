@@ -41,8 +41,8 @@ function StudentMockTestsPage() {
   return (
     <>
     <StudentNavbar/>
-    <div className="p-6 pt-20">
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="p-4 sm:p-6 pt-20">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
         Available Mock Tests
       </h1>
 
@@ -53,9 +53,9 @@ function StudentMockTestsPage() {
           {mockTests.map((mock) => (
             <div
               key={mock._id}
-              className="bg-white rounded shadow p-6"
+              className="bg-white rounded shadow p-4 sm:p-6"
             >
-              <h2 className="text-xl font-bold mb-2">
+              <h2 className="text-lg sm:text-xl font-bold mb-2 break-words">
                 {mock.title}
               </h2>
 

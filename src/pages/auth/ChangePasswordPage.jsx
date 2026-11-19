@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import StudentNavbar from "../student/StudentNavbar"
+import PasswordInput from "../../components/PasswordInput";
 
 function ChangePasswordPage() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ function ChangePasswordPage() {
     newPassword: "",
     confirmPassword: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,6 +28,7 @@ function ChangePasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     if (!formData.currentPassword) {
       return alert("Enter current password.");
@@ -42,6 +45,7 @@ function ChangePasswordPage() {
       return alert("Passwords do not match.");
     }
 
+    setIsSubmitting(true);
     try {
       const res = await api.put(
         "/auth/change-password",
@@ -61,6 +65,8 @@ function ChangePasswordPage() {
         error.response?.data?.message ||
         "Failed to change password."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -78,8 +84,7 @@ function ChangePasswordPage() {
         className="space-y-4"
       >
 
-        <input
-          type="password"
+        <PasswordInput
           name="currentPassword"
           placeholder="Current Password"
           className="w-full border rounded p-2"
@@ -87,8 +92,7 @@ function ChangePasswordPage() {
           onChange={handleChange}
         />
 
-        <input
-          type="password"
+        <PasswordInput
           name="newPassword"
           placeholder="New Password"
           className="w-full border rounded p-2"
@@ -96,8 +100,7 @@ function ChangePasswordPage() {
           onChange={handleChange}
         />
 
-        <input
-          type="password"
+        <PasswordInput
           name="confirmPassword"
           placeholder="Confirm New Password"
           className="w-full border rounded p-2"
@@ -107,9 +110,11 @@ function ChangePasswordPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded disabled:cursor-wait disabled:opacity-60"
         >
-          Change Password
+          {isSubmitting ? "Updating password..." : "Change Password"}
         </button>
 
       </form>

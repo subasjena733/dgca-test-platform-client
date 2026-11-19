@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import AuthBackground from "../../components/AuthBackground";
+import PasswordInput from "../../components/PasswordInput";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ function RegisterPage() {
     password: "",
     confirmPassword: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +33,7 @@ function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     if (!formData.name.trim()) {
       return alert("Please enter your name.");
@@ -48,6 +51,7 @@ function RegisterPage() {
       return alert("Passwords do not match.");
     }
 
+    setIsSubmitting(true);
     try {
       const res = await api.post("/auth/register", {
         name: formData.name,
@@ -66,13 +70,15 @@ function RegisterPage() {
         error.response?.data?.message ||
           "Registration failed"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <AuthBackground>
       <div className="flex items-center justify-center min-h-screen ">
-        <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+        <div className="bg-white/0 shadow-lg rounded-lg p-8 w-full max-w-md">
 
           <h1 className="text-3xl font-bold text-center mb-6">
             Student Registration
@@ -100,8 +106,7 @@ function RegisterPage() {
               onChange={handleChange}
             />
 
-            <input
-              type="password"
+            <PasswordInput
               name="password"
               placeholder="Password"
               className="w-full border rounded p-2"
@@ -109,8 +114,7 @@ function RegisterPage() {
               onChange={handleChange}
             />
 
-            <input
-              type="password"
+            <PasswordInput
               name="confirmPassword"
               placeholder="Confirm Password"
               className="w-full border rounded p-2"
@@ -120,9 +124,11 @@ function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded disabled:cursor-wait disabled:opacity-60"
             >
-              Register
+              {isSubmitting ? "Creating account..." : "Register"}
             </button>
 
             <button
