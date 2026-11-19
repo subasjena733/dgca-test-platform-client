@@ -62,10 +62,10 @@ function LoginPage() {
 
   return (
     <AuthBackground>
-      <div className="min-h-screen flex justify-center items-center">
+      <div className="min-h-screen flex justify-center items-center px-4 py-16 sm:py-0">
         <form
           onSubmit={handleSubmit}
-          className="bg-white/10 p-8 rounded-lg w-96 space-y-4"
+          className="-translate-y-10 w-full max-w-sm space-y-4 rounded-lg bg-white/10 p-6 sm:translate-y-0 sm:p-8"
         >
           <h1 className="text-2xl font-bold">
             Login
@@ -89,7 +89,7 @@ function LoginPage() {
             {isSubmitting ? "Signing in..." : "Login"}
           </button>
 
-          <div className="text-right mt-3">
+          <div className="text-left">
             <Link
               to="/forgot-password"
               className="text-blue-600 hover:underline text-sm"
@@ -98,8 +98,8 @@ function LoginPage() {
             </Link>
           </div>
 
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 border-t border-slate-300 pt-5 text-center sm:border-0 sm:pt-0">
+            <p className="text-sm text-gray-700 sm:text-gray-600">
               Don't have an account?
             </p>
 
