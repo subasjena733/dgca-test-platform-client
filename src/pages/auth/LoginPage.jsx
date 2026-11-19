@@ -98,7 +98,7 @@ function LoginPage() {
             </Link>
           </div>
 
-          <div className="mt-8 border-t border-slate-300 pt-5 text-center sm:border-0 sm:pt-0">
+          <div className="mt-12 text-center sm:mt-8">
             <p className="text-sm text-gray-700 sm:text-gray-600">
               Don't have an account?
             </p>
