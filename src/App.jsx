@@ -68,6 +68,7 @@ function App() {
       />
 
       <Route path="/student/practice" element={<ProtectedRoute allowedRole="student"><StudentPracticePage /></ProtectedRoute>} />
+      <Route path="/student/lessons/:lessonId/dpp" element={<ProtectedRoute allowedRole="student"><StudentPracticePage /></ProtectedRoute>} />
       <Route path="/student/lessons" element={<ProtectedRoute allowedRole="student"><StudentLessonsPage /></ProtectedRoute>} />
       <Route path="/admin/lessons" element={<ProtectedRoute allowedRole="admin"><LessonManagementPage /></ProtectedRoute>} />
 
