@@ -10,6 +10,7 @@ import {
   FaQuestionCircle
 } from "react-icons/fa";
 import api from "../../services/api";
+import { FaVideo } from "react-icons/fa";
 
 function StudentDashboard() {
   const navigate = useNavigate();
@@ -132,7 +133,19 @@ function StudentDashboard() {
         Quick Actions
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div onClick={() => navigate("/student/practice")} className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8">
+          <FaQuestionCircle className="text-indigo-600 text-5xl mb-4" />
+          <h3 className="text-2xl font-bold mb-2">Question Practice</h3>
+          <p className="text-gray-600">Practice by subject and difficulty, with instant explanations.</p>
+        </div>
+
+        <div onClick={() => navigate("/student/lessons")} className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-5 sm:p-8">
+          <FaVideo className="text-cyan-600 text-5xl mb-4" />
+          <h3 className="text-2xl font-bold mb-2">Lecture Videos</h3>
+          <p className="text-gray-600">Browse instructor lessons organized by subject.</p>
+        </div>
 
         {/* Mock Tests */}
 

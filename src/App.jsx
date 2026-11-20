@@ -28,6 +28,9 @@ import PasswordResetRequestsPage from "./pages/admin/PasswordResetRequestsPage";
 import SubjectManagementPage from "./pages/admin/SubjectManagementPage";
 import QuestionBankPage from "./pages/admin/QuestionBankPage";
 import LandingPage from "./components/landingPageComponents/LandingPage";
+import StudentPracticePage from "./pages/student/StudentPracticePage";
+import StudentLessonsPage from "./pages/student/StudentLessonsPage";
+import LessonManagementPage from "./pages/admin/LessonManagementPage";
 
 function App() {
   return (
@@ -63,6 +66,10 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/student/practice" element={<ProtectedRoute allowedRole="student"><StudentPracticePage /></ProtectedRoute>} />
+      <Route path="/student/lessons" element={<ProtectedRoute allowedRole="student"><StudentLessonsPage /></ProtectedRoute>} />
+      <Route path="/admin/lessons" element={<ProtectedRoute allowedRole="admin"><LessonManagementPage /></ProtectedRoute>} />
 
       <Route
         path="/admin/questions"

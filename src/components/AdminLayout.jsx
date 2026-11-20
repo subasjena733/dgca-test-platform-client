@@ -52,6 +52,10 @@ function AdminLayout({ children }) {
             Question Bank
           </Link>
 
+          <Link to="/admin/lessons" className="block hover:text-blue-400">
+            Lecture Library
+          </Link>
+
           <Link
             to="/admin/mock-tests"
             className="block hover:text-blue-400"

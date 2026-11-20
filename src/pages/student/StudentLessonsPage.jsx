@@ -1,0 +1,16 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Clock3, PlayCircle } from "lucide-react";
+import api from "../../services/api";
+
+export default function StudentLessonsPage() {
+  const [lessons, setLessons] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [subject, setSubject] = useState("ALL");
+  const [error, setError] = useState("");
+  useEffect(() => { api.get("/subjects").then(r=>setSubjects(r.data)).catch(()=>{}); }, []);
+  useEffect(() => { api.get("/lessons", { params: { subject } }).then(r=>{setLessons(r.data);setError("");}).catch(e=>setError(e.response?.data?.message||"Could not load lessons.")); }, [subject]);
+  return <main className="min-h-screen bg-slate-50 px-4 pb-12 pt-24 sm:px-6"><div className="mx-auto max-w-6xl"><Link to="/student" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600"><ArrowLeft size={16}/>Dashboard</Link><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-[.18em] text-indigo-700">Learning library</p><h1 className="mt-2 text-3xl font-black text-slate-900">Lecture videos</h1><p className="mt-2 text-slate-600">Learn each concept at your own pace, then put it into practice.</p></div><select value={subject} onChange={e=>setSubject(e.target.value)} className="rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold"><option value="ALL">All subjects</option>{subjects.map(s=><option key={s._id} value={s.subjectName}>{s.subjectName}</option>)}</select></div>
+    {error&&<p className="mt-6 rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>}
+    {lessons.length ? <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{lessons.map(lesson=><article key={lesson._id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><a href={lesson.videoUrl} target="_blank" rel="noreferrer" className="group flex aspect-video items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-slate-800 text-white"><PlayCircle size={58} className="transition group-hover:scale-110"/><span className="sr-only">Watch lesson</span></a><div className="p-5"><div className="text-xs font-bold uppercase tracking-wide text-indigo-700">{lesson.subject}{lesson.topic?` · ${lesson.topic}`:""}</div><h2 className="mt-2 text-xl font-bold text-slate-900">{lesson.title}</h2>{lesson.description&&<p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{lesson.description}</p>}<div className="mt-4 flex items-center justify-between"><span className="inline-flex items-center gap-1 text-sm text-slate-500">{lesson.duration&&<><Clock3 size={14}/>{lesson.duration}</>}</span><a href={lesson.videoUrl} target="_blank" rel="noreferrer" className="font-bold text-blue-700">Watch now →</a></div></div></article>)}</div> : !error&&<div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-14 text-center"><PlayCircle size={36} className="mx-auto text-indigo-400"/><h2 className="mt-3 text-xl font-bold">Your classroom is getting ready</h2><p className="mt-2 text-slate-500">Published lecture videos will appear here.</p></div>}</div></main>;
+}
