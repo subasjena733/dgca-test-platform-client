@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../services/api";
 
@@ -207,8 +207,15 @@ export default function LessonManagementPage() {
   return <AdminLayout><div className="mx-auto max-w-6xl">
     <div className="mb-7"><p className="text-sm font-bold uppercase tracking-[.18em] text-blue-700">Teaching resources</p><h1 className="mt-2 text-3xl font-black text-slate-900">Lecture library</h1><p className="mt-2 text-slate-600">Add YouTube lectures, teacher instructions, PDF resources, and DPP questions.</p></div>
     {error&&<div className="mb-4 rounded-xl bg-rose-50 p-4 text-rose-700">{error}</div>}{message&&<div className="mb-4 rounded-xl bg-emerald-50 p-4 text-emerald-700">{message}</div>}
-    <form onSubmit={add} className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2">
-      <h2 className="text-xl font-bold md:col-span-2">Add a lecture</h2>
+    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl p-4 sm:p-5 [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-3">
+          <span className="rounded-xl bg-blue-50 p-2 text-blue-700"><Plus size={20}/></span>
+          <span><span className="block text-lg font-bold text-slate-900">Add a lecture</span><span className="mt-0.5 block text-sm font-normal text-slate-500">Expand to add a video, PDF, and student instructions.</span></span>
+        </span>
+        <ChevronDown size={20} className="shrink-0 text-slate-500 transition-transform group-open:rotate-180"/>
+      </summary>
+      <form onSubmit={add} className="grid gap-4 border-t border-slate-100 p-4 sm:p-6 md:grid-cols-2">
       <label className="text-sm font-semibold">Lesson title<input required maxLength="160" value={form.title} onChange={(e)=>setForm({...form,title:e.target.value})} className="mt-1 w-full rounded-lg border p-3" placeholder="e.g. Principles of Flight: Lift"/></label>
       <label className="text-sm font-semibold">Subject<select required value={form.subject} onChange={(e)=>setForm({...form,subject:e.target.value})} className="mt-1 w-full rounded-lg border bg-white p-3">{subjects.map((s)=><option key={s._id} value={s.subjectName}>{s.subjectName}</option>)}</select></label>
       <label className="text-sm font-semibold">Topic<input value={form.topic} onChange={(e)=>setForm({...form,topic:e.target.value})} className="mt-1 w-full rounded-lg border p-3" placeholder="Optional topic"/></label>
@@ -218,7 +225,8 @@ export default function LessonManagementPage() {
       <label className="text-sm font-semibold md:col-span-2">PDF attachment<input ref={pdfInputRef} type="file" accept="application/pdf,.pdf" onChange={(e)=>{const file=e.target.files?.[0]||null;if(file&&file.size>25*1024*1024){setError("PDF must be 25 MB or smaller.");setPdfFile(null);e.target.value="";return;}setError("");setPdfFile(file);}} className="mt-1 block w-full rounded-lg border p-3 file:mr-3 file:rounded-md file:border-0 file:bg-rose-50 file:px-3 file:py-2 file:font-bold file:text-rose-700"/><span className="mt-1 block font-normal text-slate-500">Upload a PDF up to 25 MB. It will be stored in the private Supabase lecture bucket.</span></label>
       <label className="text-sm font-semibold md:col-span-2">Description<textarea rows="3" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} className="mt-1 w-full rounded-lg border p-3" placeholder="What will students learn?"/></label>
       <div className="md:col-span-2"><button type="submit" disabled={publishing} className="rounded-lg bg-blue-700 px-5 py-3 font-bold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">{publishing?"Publishing…":"Publish lecture"}</button></div>
-    </form>
+      </form>
+    </details>
     <section className="mt-8"><h2 className="mb-2 text-xl font-bold">All lectures <span className="text-slate-400">({lessons.length})</span></h2><p className="mb-4 text-sm text-slate-500">Use the arrows to set the order students see lectures in the library.</p><div className="space-y-3">{lessons.map((lesson,index)=><article key={lesson._id} className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="flex flex-col"><button type="button" aria-label={`Move ${lesson.title} up`} title="Move up" onClick={()=>moveLesson(index,-1)} disabled={savingOrder||index===0} className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30"><ArrowUp size={16}/></button><button type="button" aria-label={`Move ${lesson.title} down`} title="Move down" onClick={()=>moveLesson(index,1)} disabled={savingOrder||index===lessons.length-1} className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30"><ArrowDown size={16}/></button></div><div><div className="font-bold">{lesson.title}</div><div className="mt-1 text-sm text-slate-500">{lesson.subject}{lesson.topic?` · ${lesson.topic}`:""} · {lesson.published?"Published":"Hidden"}</div></div></div><div className="flex gap-2"><button onClick={()=>toggle(lesson)} className="rounded-lg border px-3 py-2 text-sm font-semibold">{lesson.published?"Unpublish":"Publish"}</button><button onClick={()=>remove(lesson)} className="rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700">Remove</button></div></div>
       {!lesson.published&&<LessonEditForm lesson={lesson} subjects={subjects} onSaved={refresh}/>}
